@@ -210,7 +210,7 @@ class Message(olefile.OleFileIO):
 
     def parseHeader(self):
         """ Returns the message header. """
-        headerText = self._getStringStream('__substg1.0_007D')
+        headerText = self.getStringField('007D')
         headerText = headerText or ''
         header = EmailParser().parsestr(headerText)
         return header
