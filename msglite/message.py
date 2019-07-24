@@ -289,6 +289,13 @@ class Message(olefile.OleFileIO):
         if message_id is not None:
             return message_id
         return self.getStringField('1035')
+    
+    @property
+    def references(self):
+        message_id = self.header['references']
+        if message_id is not None:
+            return message_id
+        return self.getStringField('1039')
 
     @property
     def reply_to(self):
