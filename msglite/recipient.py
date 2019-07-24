@@ -1,11 +1,9 @@
 import logging
 
-from extract_msg import constants
-from extract_msg.properties import Properties
-
+from msglite import constants
+from msglite.properties import Properties
 
 logger = logging.getLogger(__name__)
-logger.addHandler(logging.NullHandler())
 
 
 class Recipient(object):

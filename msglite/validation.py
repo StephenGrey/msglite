@@ -1,9 +1,8 @@
 import copy
-
 import olefile
 
-from extract_msg.message import Message
-from extract_msg.utils import get_full_class_name, has_len
+from msglite.message import Message
+from msglite.utils import get_full_class_name, has_len
 
 
 def get_string_details(instance, stream):

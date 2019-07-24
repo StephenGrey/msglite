@@ -1,12 +1,11 @@
 import copy
 import logging
 
-from extract_msg import constants
-from extract_msg.prop import create_prop
-from extract_msg.utils import divide, fromTimeStamp, msgEpoch, properHex
+from msglite import constants
+from msglite.prop import create_prop
+from msglite.utils import divide, fromTimeStamp, msgEpoch, properHex
 
 logger = logging.getLogger(__name__)
-logger.addHandler(logging.NullHandler())
 
 
 class Properties(object):

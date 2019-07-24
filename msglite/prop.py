@@ -1,10 +1,9 @@
 import logging
 
-from extract_msg import constants
-from extract_msg.utils import properHex
+from msglite import constants
+from msglite.utils import properHex
 
 logger = logging.getLogger(__name__)
-logger.addHandler(logging.NullHandler())
 
 
 def create_prop(string):

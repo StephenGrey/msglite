@@ -2,12 +2,11 @@ import logging
 import random
 import string
 
-from extract_msg import constants
-from extract_msg.properties import Properties
-from extract_msg.utils import properHex
+from msglite import constants
+from msglite.properties import Properties
+from msglite.utils import properHex
 
 logger = logging.getLogger(__name__)
-logger.addHandler(logging.NullHandler())
 
 
 class Attachment(object):

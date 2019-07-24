@@ -8,16 +8,15 @@ from imapclient.imapclient import decode_utf7
 import olefile
 
 from email.parser import Parser as EmailParser
-from extract_msg import constants
-from extract_msg.attachment import Attachment
-from extract_msg.compat import os_ as os
-from extract_msg.properties import Properties
-from extract_msg.recipient import Recipient
-from extract_msg.utils import addNumToDir, encode, has_len, stri, windowsUnicode, xstr
-from extract_msg.exceptions import InvalidFileFormat
+
+from msglite import constants
+from msglite.attachment import Attachment
+from msglite.properties import Properties
+from msglite.recipient import Recipient
+from msglite.utils import addNumToDir, encode, has_len, stri, windowsUnicode, xstr
+from msglite.exceptions import InvalidFileFormat
 
 logger = logging.getLogger(__name__)
-logger.addHandler(logging.NullHandler())
 
 
 class Message(olefile.OleFileIO):
