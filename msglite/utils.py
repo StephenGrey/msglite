@@ -4,11 +4,11 @@ Utility functions of extract_msg.
 import os
 import sys
 import json
+import pytz
+import chardet
+import logging
 import argparse
 import datetime
-import tzlocal
-import logging
-import logging.config
 
 from msglite import constants
 
@@ -35,6 +35,17 @@ def xstr(s):
     return '' if s is None else str(s)
 
 
+def guess_encoding(raw):
+    if raw is None:
+        return
+    result = chardet.detect(raw)
+    if result.get('confidence') > 0.5:
+        encoding = result.get('encoding')
+        if encoding == 'ascii':
+            return 'utf-8'
+        return encoding
+
+
 def divide(string, length):
     """
     Taken (with permission) from https://github.com/TheElementalOfCreation/creatorUtils
@@ -53,7 +64,7 @@ def divide(string, length):
 
 
 def fromTimeStamp(stamp):
-    return datetime.datetime.fromtimestamp(stamp, tzlocal.get_localzone())
+    return datetime.datetime.fromtimestamp(stamp, pytz.UTC)
 
 
 def has_len(obj):

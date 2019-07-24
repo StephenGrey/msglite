@@ -15,6 +15,7 @@ setup(
     install_requires=[
         'imapclient>=2.1.0',
         'olefile>=0.46',
-        'tzlocal>=1.5.1'
+        'chardet',
+        'pytz',
     ],
 )

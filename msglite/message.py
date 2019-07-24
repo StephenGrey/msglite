@@ -11,7 +11,7 @@ from msglite import constants
 from msglite.attachment import Attachment
 from msglite.properties import Properties
 from msglite.recipient import Recipient
-from msglite.utils import has_len, xstr, format_party
+from msglite.utils import has_len, xstr, format_party, guess_encoding
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +30,7 @@ class Message(olefile.OleFileIO):
         :param filename: optional, the filename to be used by default when saving.
         """
         # WARNING DO NOT MANUALLY MODIFY PREFIX. Let the program set it.
-        self.stringEncoding = stringEncoding
+        self.encoding = stringEncoding
         self.path = path
         olefile.OleFileIO.__init__(self, path)
         prefixl = []
@@ -68,23 +68,39 @@ class Message(olefile.OleFileIO):
         self.mainProperties = Properties(self._getStream('__properties_version1.0'), prop_type)
 
         # Determine if the message is unicode-style:
+        # PidTagStoreSupportMask
         areStringsUnicode = False
         if self.mainProperties.has_key('340D0003'):
             if (self.mainProperties['340D0003'].value & 0x40000) != 0:
-                areStringsUnicode = True 
-        
+                areStringsUnicode = True
+
         # Based on that, determine the effecive encoding:
-        if self.mainProperties.has_key('3FFD0003') and not areStringsUnicode:
-            enc = self.mainProperties['3FFD0003'].value
-            # Now we just need to translate that value
-            # Now, this next line SHOULD work, but it is possible that it might not...
-            self.stringEncoding = str(enc)
-        
+        # PidTagMessageCodepage
+        if not areStringsUnicode:
+            if self.mainProperties.has_key('3FFD0003'):
+                enc = self.mainProperties['3FFD0003'].value
+                # Now we just need to translate that value
+                # Now, this next line SHOULD work, but it is possible that it might not...
+                self.encoding = str(enc)
+            else:
+                guessed = self.guessEncoding()
+                self.encoding = guessed or self.encoding
+
         self.header = self.parseHeader()
         self.recipients = self.parseRecipients()
         self.attachments = self.parseAttachments()
         self.subject = self._getStringStream('__substg1.0_0037')
         self.date = self.mainProperties.date
+    
+    def guessEncoding(self):
+        texts = ('1000001E', '1000001F',
+                 '1013001E', '1013001F',
+                 '0037001E', '0037001F')
+        for field in texts:
+            raw = self._getStream('__substg1.0_%s' % field)
+            encoding = guess_encoding(raw)
+            if encoding is not None:
+                return encoding
 
     def listDir(self, streams=True, storages=False):
         """
@@ -148,11 +164,12 @@ class Message(olefile.OleFileIO):
         This should ALWAYS return a string (Unicode in python 2)
         """
         filename = self.fix_path(filename, prefix)
-        data = self._getStream(filename + '001E', prefix=False)
-        if data is None:
-            return
-        # FIXME: should this warn explicitly?
-        return data.decode(self.stringEncoding, 'replace')
+        for suffix in ('001F', '001E', '0102'):
+            data = self._getStream(filename + suffix, prefix=prefix)
+            if data is None:
+                continue
+            # FIXME: should this warn explicitly?
+            return data.decode(self.encoding, 'replace')
 
     def getStringField(self, name):
         return self._getStringStream('__substg1.0_%s' % name)
@@ -207,8 +224,10 @@ class Message(olefile.OleFileIO):
         """
         Returns the message sender, if it exists.
         """
-        text = self._getStringStream('__substg1.0_0C1A')
-        email = self._getStringStream('__substg1.0_5D01')
+        text = self.getStringField('0C1A')
+        email = self.getStringField('5D01')
+        if email is None:
+            email = self.getStringField('0C1F')
         return format_party(email, text)
 
     @property
@@ -253,27 +272,27 @@ class Message(olefile.OleFileIO):
         return self._getStream('__substg1.0_10090102')
 
     @property
+    def body(self):
+        """ Returns the message body. """
+        return self.getStringField('1000')
+
+    @property
     def htmlBody(self):
         """
         Returns the html body, if it exists.
         """
-        return self._getStringStream('__substg1.0_10130102')
+        return self.getStringField('1013')
 
     @property
     def message_id(self):
         message_id = self.header['message-id']
         if message_id is not None:
             return message_id
-        return self._getStringStream('__substg1.0_1035')
+        return self.getStringField('1035')
 
     @property
     def reply_to(self):
         return self._getStringStream('__substg1.0_1042')
-
-    @property
-    def body(self):
-        """ Returns the message body. """
-        return self._getStringStream('__substg1.0_1000')
 
     def dump(self):
         """
