@@ -30,10 +30,10 @@ __author__ = 'Matthew Walker & The Elemental of Creation'
 __date__ = '2019-04-20'
 __version__ = '0.23.2'
 
-from extract_msg import constants
-from extract_msg.attachment import Attachment
-from extract_msg.message import Message
-from extract_msg.prop import create_prop
-from extract_msg.properties import Properties
-from extract_msg.recipient import Recipient
-from extract_msg.utils import parse_type, properHex
+from msglite import constants
+from msglite.attachment import Attachment
+from msglite.message import Message
+from msglite.prop import create_prop
+from msglite.properties import Properties
+from msglite.recipient import Recipient
+from msglite.utils import parse_type, properHex

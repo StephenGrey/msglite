@@ -24,61 +24,12 @@ class PropBase(object):
 
     def __init__(self, string):
         super(PropBase, self).__init__()
-        self.__raw = string
-        self.__name = properHex(string[3::-1]).upper()
-        self.__type, self.__flags = constants.ST2.unpack(string)
-        self.__fm = self.__flags & 1 == 1
-        self.__fr = self.__flags & 2 == 2
-        self.__fw = self.__flags & 4 == 4
-
-    @property
-    def flag_mandatory(self):
-        """
-        Boolean, is the "mandatory" flag set?
-        """
-        return self.__fm
-
-    @property
-    def flag_readable(self):
-        """
-        Boolean, is the "readable" flag set?
-        """
-        return self.__fr
-
-    @property
-    def flag_writable(self):
-        """
-        Boolean, is the "writable" flag set?
-        """
-        return self.__fw
-
-    @property
-    def flags(self):
-        """
-        Integer that contains property flags.
-        """
-        return self.__flags
-
-    @property
-    def name(self):
-        """
-        Property "name".
-        """
-        return self.__name
-
-    @property
-    def raw(self):
-        """
-        Raw binary string that defined the property.
-        """
-        return self.__raw
-
-    @property
-    def type(self):
-        """
-        The type of property.
-        """
-        return self.__type
+        self.raw = string
+        self.name = properHex(string[3::-1]).upper()
+        self.type, self.flags = constants.ST2.unpack(string)
+        self.flag_mandatory = self.flags & 1 == 1
+        self.flag_readable = self.flags & 2 == 2
+        self.flag_writable = self.flags & 4 == 4
 
 
 class FixedLengthProp(PropBase):
@@ -90,7 +41,7 @@ class FixedLengthProp(PropBase):
 
     def __init__(self, string):
         super(FixedLengthProp, self).__init__(string)
-        self.__value = self.parse_type(self.type, constants.STFIX.unpack(string)[0])
+        self.value = self.parse_type(self.type, constants.STFIX.unpack(string)[0])
 
     def parse_type(self, _type, stream):
         """
@@ -139,13 +90,6 @@ class FixedLengthProp(PropBase):
             pass
         return value
 
-    @property
-    def value(self):
-        """
-        Property value.
-        """
-        return self.__value
-
 
 class VariableLengthProp(PropBase):
     """
@@ -154,33 +98,12 @@ class VariableLengthProp(PropBase):
 
     def __init__(self, string):
         super(VariableLengthProp, self).__init__(string)
-        self.__length, self.__reserved = constants.STVAR.unpack(string)
+        self.length, self.reserved_flags = constants.STVAR.unpack(string)
         if self.type == 0x001E:
-            self.__realLength = self.__length - 1
+            self.real_length = self.length - 1
         elif self.type == 0x001F:
-            self.__realLength = self.__length - 2
+            self.real_length = self.length - 2
         elif self.type == 0x000D:
-            self.__realLength = None
+            self.real_length = None
         else:
-            self.__realLength = self.__length
-
-    @property
-    def length(self):
-        """
-        The length field of the variable length property.
-        """
-        return self.__length
-
-    @property
-    def reserved_flags(self):
-        """
-        The reserved flags field of the variable length property.
-        """
-        return self.__reserved
-
-    @property
-    def real_length(self):
-        """
-        The ACTUAL length of the stream that this property corresponds to.
-        """
-        return self.__realLength
+            self.real_length = self.length

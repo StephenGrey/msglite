@@ -14,13 +14,7 @@ from msglite import constants
 
 logger = logging.getLogger(__name__)
 
-stri = (str,)
-
 get_input = input
-
-
-def encode(inp):
-    return inp
 
 
 def properHex(inp):
@@ -28,7 +22,7 @@ def properHex(inp):
     Taken (with permission) from https://github.com/TheElementalOfCreation/creatorUtils
     """
     a = ''
-    if isinstance(inp, stri):
+    if isinstance(inp, str):
         a = ''.join([hex(ord(inp[x]))[2:].rjust(2, '0') for x in range(len(inp))])
     elif isinstance(inp, bytes):
         a = inp.hex()
@@ -39,26 +33,8 @@ def properHex(inp):
     return a
 
 
-def windowsUnicode(string):
-    return str(string, 'utf_16_le') if string is not None else None
-
-
 def xstr(s):
     return '' if s is None else str(s)
-
-
-def addNumToDir(dirName):
-    """
-    Attempt to create the directory with a '(n)' appended.
-    """
-    for i in range(2, 100):
-        try:
-            newDirName = dirName + ' (' + str(i) + ')'
-            os.makedirs(newDirName)
-            return newDirName
-        except Exception as e:
-            pass
-    return None
 
 
 def divide(string, length):

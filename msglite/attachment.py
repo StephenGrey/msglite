@@ -22,11 +22,10 @@ class Attachment(object):
         :param msg: the Message instance that the attachment belongs to.
         :param dir_: the directory inside the msg file where the attachment is located.
         """
-        object.__init__(self)
         self.msg = msg
         self.dir = dir_
         self.props = Properties(self._getStream('__properties_version1.0'),
-            constants.TYPE_ATTACHMENT)
+                                constants.TYPE_ATTACHMENT)
         # Get long filename
         self.longFilename = self._getStringStream('__substg1.0_3707')
 
@@ -35,12 +34,12 @@ class Attachment(object):
 
         # Get Content-ID
         self.cid = self._getStringStream('__substg1.0_3712')
-        self.contend_id = self.cid
 
         # Get attachment data
         if self.Exists('__substg1.0_37010102'):
             self.type = 'data'
-            self.data = self._getStream('__substg1.0_37010102')
+            self.raw = self._getStream('__substg1.0_37010102')
+            self.data = self.raw
         elif self.Exists('__substg1.0_3701000D'):
             if (self.props['37050003'].value & 0x7) != 0x5:
                 raise NotImplementedError(
@@ -87,37 +86,4 @@ class Attachment(object):
         if self.shortFilename:
             return self.shortFilename
         # Otherwise just make something up!
-        return 'UnknownFilename %s.bin' % self.dir
-
-    def save(self, contentId=False, json=False, useFileName=False, raw=False, customPath=None, customFilename=None):
-        # Check if the user has specified a custom filename
-        filename = None
-        if customFilename is not None and customFilename != '':
-            filename = customFilename
-        else:
-            # If not...
-            # Check if user wants to save the file under the Content-id
-            if contentId:
-                filename = self.cid
-            if filename is None:
-                filename = self.getDefaultFilename()
-
-        if customPath is not None and customPath != '':
-            if customPath[-1] != '/' or customPath[-1] != '\\':
-                customPath += '/'
-            filename = customPath + filename
-
-        if self.type == "data":
-            with open(filename, 'wb') as f:
-                f.write(self.data)
-        else:
-            self.saveEmbeddedMessage(contentId, json, useFileName, raw, customPath, customFilename)
-        return filename
-
-    def saveEmbeddedMessage(self, contentId=False, json=False, useFileName=False, raw=False, customPath=None,
-                           customFilename=None):
-        """
-        Seperate function from save to allow it to
-        easily be overridden by a subclass.
-        """
-        self.data.save(json, useFileName, raw, contentId, customPath, customFilename)
+        return 'Unknown %s.bin' % self.dir
