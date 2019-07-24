@@ -69,7 +69,7 @@ def has_len(obj):
 
 def format_party(email, label):
     result = None
-    if label is None:
+    if label is None or label == email:
         result = email
     else:
         result = label

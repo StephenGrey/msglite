@@ -51,3 +51,6 @@ class Recipient(object):
         Checks if the string stream exists inside the recipient folder.
         """
         return self.__msg.sExists([self.dir, filename])
+
+    def __repr__(self):
+        return '<Recipient(%s)>' % self.formatted

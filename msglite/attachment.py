@@ -45,8 +45,9 @@ class Attachment(object):
                 raise TypeError('Container is not an embedded msg file.')
             self.prefix = msg.prefixList + [dir_, '__substg1.0_3701000D']
             self.type = 'msg'
-            self.data = msg.__class__(self.msg.path, self.prefix,
-                                      self.getDefaultFilename())
+            self.data = msg.__class__(self.msg.path,
+                                      prefix=self.prefix,
+                                      filename=self.getDefaultFilename())
         else:
             # TODO Handling for special attachment types (like 0x00000007)
             raise TypeError('Unknown attachment type.')
@@ -85,3 +86,6 @@ class Attachment(object):
             return self.shortFilename
         # Otherwise just make something up!
         return 'Unknown %s.bin' % self.dir
+
+    def __repr__(self):
+        return '<Attachment(%s)>' % self.getDefaultFilename()

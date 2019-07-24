@@ -90,6 +90,9 @@ class FixedLengthProp(PropBase):
             pass
         return value
 
+    def __repr__(self):
+        return '<FLProp(%r)>' % self.value
+
 
 class VariableLengthProp(PropBase):
     """
@@ -107,3 +110,6 @@ class VariableLengthProp(PropBase):
             self.real_length = None
         else:
             self.real_length = self.length
+
+    def __repr__(self):
+        return '<VLProp(%r)>' % self.real_length
