@@ -36,21 +36,19 @@ class Attachment(object):
         self.cid = self._getStringStream('__substg1.0_3712')
 
         # Get attachment data
+        self.data = None
         if self.Exists('__substg1.0_37010102'):
             self.type = 'data'
-            self.raw = self._getStream('__substg1.0_37010102')
-            self.data = self.raw
+            self.data = self._getStream('__substg1.0_37010102')
         elif self.Exists('__substg1.0_3701000D'):
             if (self.props['37050003'].value & 0x7) != 0x5:
-                raise NotImplementedError(
-                    'Current version of extract_msg does not support extraction of containers that are not embedded msg files.')
-                # TODO add implementation
-            else:
-                self.prefix = msg.prefixList + [dir_, '__substg1.0_3701000D']
-                self.type = 'msg'
-                self.data = msg.__class__(self.msg.path, self.prefix, self.__class__)
+                raise TypeError('Container is not an embedded msg file.')
+            self.prefix = msg.prefixList + [dir_, '__substg1.0_3701000D']
+            self.type = 'msg'
+            self.data = msg.__class__(self.msg.path, self.prefix,
+                                      self.getDefaultFilename())
         else:
-            # TODO Handling for special attacment types (like 0x00000007)
+            # TODO Handling for special attachment types (like 0x00000007)
             raise TypeError('Unknown attachment type.')
 
     def _getStream(self, filename):

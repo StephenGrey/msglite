@@ -2,6 +2,7 @@ import logging
 
 from msglite import constants
 from msglite.properties import Properties
+from msglite.utils import format_party
 
 logger = logging.getLogger(__name__)
 
@@ -12,19 +13,22 @@ class Recipient(object):
     """
 
     def __init__(self, _dir, msg):
-        object.__init__(self)
         self.__msg = msg  # Allows calls to original msg file
-        self.__dir = _dir
-        self.__props = Properties(self._getStream('__properties_version1.0'), constants.TYPE_RECIPIENT)
-        self.__email = self._getStringStream('__substg1.0_39FE')
-        if not self.__email:
-            self.__email = self._getStringStream('__substg1.0_3003')
-        self.__name = self._getStringStream('__substg1.0_3001')
-        self.__type = self.__props.get('0C150003').value
-        self.__formatted = u'{0} <{1}>'.format(self.__name, self.__email)
+        self.dir = _dir
+        self.props = Properties(self._getStream('__properties_version1.0'), constants.TYPE_RECIPIENT)
+        self.email = self._getStringStream('__substg1.0_39FE')
+        if not self.email:
+            self.email = self._getStringStream('__substg1.0_3003')
+        self.name = self._getStringStream('__substg1.0_3001')
+        # Sender if `type & 0xf == 0`
+        # To if `type & 0xf == 1`
+        # Cc if `type & 0xf == 2`
+        # Bcc if `type & 0xf == 3`
+        self.type = self.props.get('0C150003').value
+        self.formatted = format_party(self.email, self.name)
 
     def _getStream(self, filename):
-        return self.__msg._getStream([self.__dir, filename])
+        return self.__msg._getStream([self.dir, filename])
 
     def _getStringStream(self, filename):
         """
@@ -34,55 +38,16 @@ class Recipient(object):
         versions, then :param prefer: specifies which will be
         returned.
         """
-        return self.__msg._getStringStream([self.__dir, filename])
+        return self.__msg._getStringStream([self.dir, filename])
 
     def Exists(self, filename):
         """
         Checks if stream exists inside the recipient folder.
         """
-        return self.__msg.Exists([self.__dir, filename])
+        return self.__msg.Exists([self.dir, filename])
 
     def sExists(self, filename):
         """
         Checks if the string stream exists inside the recipient folder.
         """
-        return self.__msg.sExists([self.__dir, filename])
-
-    @property
-    def email(self):
-        """
-        Returns the recipient's email.
-        """
-        return self.__email
-
-    @property
-    def formatted(self):
-        """
-        Returns the formatted recipient string.
-        """
-        return self.__formatted
-
-    @property
-    def name(self):
-        """
-        Returns the recipient's name.
-        """
-        return self.__name
-
-    @property
-    def props(self):
-        """
-        Returns the Properties instance of the recipient.
-        """
-        return self.__props
-
-    @property
-    def type(self):
-        """
-        Returns the recipient type.
-        Sender if `type & 0xf == 0`
-        To if `type & 0xf == 1`
-        Cc if `type & 0xf == 2`
-        Bcc if `type & 0xf == 3`
-        """
-        return self.__type
+        return self.__msg.sExists([self.dir, filename])

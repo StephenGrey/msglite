@@ -14,8 +14,6 @@ from msglite import constants
 
 logger = logging.getLogger(__name__)
 
-get_input = input
-
 
 def properHex(inp):
     """
@@ -67,6 +65,17 @@ def has_len(obj):
         return True
     except AttributeError:
         return False
+
+
+def format_party(email, label):
+    result = None
+    if label is None:
+        result = email
+    else:
+        result = label
+        if email is not None:
+            result += ' <' + email + '>'
+    return result
 
 
 def msgEpoch(inp):
@@ -148,14 +157,3 @@ def parse_type(_type, stream):
         # TODO parsing for `multiple` types
         pass
     return value
-
-
-def getContFileDir(_file_):
-    """
-    Takes in the path to a file and tries to return the containing folder.
-    """
-    return '/'.join(_file_.replace('\\', '/').split('/')[:-1])
-
-
-def get_full_class_name(inp):
-    return inp.__class__.__module__ + '.' + inp.__class__.__name__

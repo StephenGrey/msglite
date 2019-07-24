@@ -11,7 +11,7 @@ from msglite import constants
 from msglite.attachment import Attachment
 from msglite.properties import Properties
 from msglite.recipient import Recipient
-from msglite.utils import has_len, xstr
+from msglite.utils import has_len, xstr, format_party
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +49,7 @@ class Message(olefile.OleFileIO):
             prefixl = g
             if prefix[-1] != '/':
                 prefix += '/'
-        self.__prefix = prefix
+        self.prefix = prefix
         self.__prefixList = prefixl
         if tmp_condition:
             filename = self._getStringStream(prefixl[:-1] + ['__substg1.0_3001'], prefix=False)
@@ -64,7 +64,7 @@ class Message(olefile.OleFileIO):
             self.filename = None
 
         # Parse the main props
-        prop_type = constants.TYPE_MESSAGE if self.__prefix == '' else constants.TYPE_MESSAGE_EMBED
+        prop_type = constants.TYPE_MESSAGE if self.prefix == '' else constants.TYPE_MESSAGE_EMBED
         self.mainProperties = Properties(self._getStream('__properties_version1.0'), prop_type)
 
         # Determine if the message is unicode-style:
@@ -80,12 +80,9 @@ class Message(olefile.OleFileIO):
             # Now, this next line SHOULD work, but it is possible that it might not...
             self.stringEncoding = str(enc)
         
-        # Initialize properties in the order that is least likely to cause bugs.
-        # TODO have each function check for initialization of needed data so these
-        # lines will be unnecessary.
-        self.header
-        self.recipients
-        self.attachments
+        self.header = self.parseHeader()
+        self.recipients = self.parseRecipients()
+        self.attachments = self.parseAttachments()
         self.subject = self._getStringStream('__substg1.0_0037')
         self.date = self.mainProperties.date
 
@@ -94,9 +91,9 @@ class Message(olefile.OleFileIO):
         Replacement for OleFileIO.listdir that runs at the current prefix directory.
         """
         temp = self.listdir(streams, storages)
-        if self.__prefix == '':
+        if self.prefix == '':
             return temp
-        prefix = self.__prefix.split('/')
+        prefix = self.prefix.split('/')
         if prefix[-1] == '':
             prefix.pop()
         out = []
@@ -135,7 +132,7 @@ class Message(olefile.OleFileIO):
         if isinstance(inp, (list, tuple)):
             inp = '/'.join(inp)
         if prefix:
-            inp = self.__prefix + inp
+            inp = self.prefix + inp
         return inp
 
     def _getStream(self, filename, prefix=True):
@@ -161,14 +158,6 @@ class Message(olefile.OleFileIO):
         return self._getStringStream('__substg1.0_%s' % name)
 
     @property
-    def prefix(self):
-        """
-        Returns the prefix of the Message instance.
-        Intended for developer use.
-        """
-        return self.__prefix
-
-    @property
     def prefixList(self):
         """
         Returns the prefix list of the Message instance.
@@ -176,29 +165,38 @@ class Message(olefile.OleFileIO):
         """
         return copy.deepcopy(self.__prefixList)
 
-    @property
-    def header(self):
-        """
-        Returns the message header, if it exists. Otherwise it will generate one.
-        """
-        if not hasattr(self, '_header'):
-            headerText = self._getStringStream('__substg1.0_007D')
-            if headerText is not None:
-                self._header = EmailParser().parsestr(headerText)
-                self._header['date'] = self.date
-            else:
-                logger.info('Header is empty or was not found. Header will be generated from other streams.')
-                header = EmailParser().parsestr('')
-                header.add_header('Date', self.date)
-                header.add_header('From', self.sender)
-                header.add_header('To', self.to)
-                header.add_header('Cc', self.cc)
-                header.add_header('Message-Id', self.message_id)
-                # TODO find authentication results outside of header
-                header.add_header('Authentication-Results', None)
+    def parseAttachments(self):
+        """ Returns a list of all attachments. """
+        attachmentDirs = []
+        for dir_ in self.listDir():
+            if dir_[len(self.__prefixList)].startswith('__attach') and\
+                    dir_[len(self.__prefixList)] not in attachmentDirs:
+                attachmentDirs.append(dir_[len(self.__prefixList)])
 
-                self._header = header
-        return self._header
+        attachments = []
+        for attachmentDir in attachmentDirs:
+            attachments.append(Attachment(self, attachmentDir))
+        return attachments
+
+    def parseRecipients(self):
+        """ Returns a list of all recipients. """
+        recipientDirs = []
+        for dir_ in self.listDir():
+            if dir_[len(self.__prefixList)].startswith('__recip') and\
+                    dir_[len(self.__prefixList)] not in recipientDirs:
+                recipientDirs.append(dir_[len(self.__prefixList)])
+
+        recipients = []
+        for recipientDir in recipientDirs:
+            recipients.append(Recipient(recipientDir, self))
+        return recipients
+
+    def parseHeader(self):
+        """ Returns the message header. """
+        headerText = self._getStringStream('__substg1.0_007D')
+        headerText = headerText or ''
+        header = EmailParser().parsestr(headerText)
+        return header
 
     @property
     def parsedDate(self):
@@ -211,21 +209,11 @@ class Message(olefile.OleFileIO):
         """
         text = self._getStringStream('__substg1.0_0C1A')
         email = self._getStringStream('__substg1.0_5D01')
-        # Will not give an email address sometimes. Seems to exclude the email address if YOU are the sender.
-        result = None
-        if text is None:
-            result = email
-        else:
-            result = text
-            if email is not None:
-                result += ' <' + email + '>'
-        return result
+        return format_party(email, text)
 
     @property
     def to(self):
-        """
-        Returns the to field, if it exists.
-        """
+        """ Returns the to field. """
         headerResult = self.header['to']
         if headerResult is not None:
             return headerResult
@@ -242,9 +230,7 @@ class Message(olefile.OleFileIO):
 
     @property
     def cc(self):
-        """
-        Returns the cc field, if it exists.
-        """
+        """ Returns the cc field. """
         headerResult = self.header['cc']
         if headerResult is not None:
             return headerResult   
@@ -271,7 +257,7 @@ class Message(olefile.OleFileIO):
         """
         Returns the html body, if it exists.
         """
-        return self._getStream('__substg1.0_10130102')
+        return self._getStringStream('__substg1.0_10130102')
 
     @property
     def message_id(self):
@@ -286,56 +272,8 @@ class Message(olefile.OleFileIO):
 
     @property
     def body(self):
-        """
-        Returns the message body, if it exists.
-        """
+        """ Returns the message body. """
         return self._getStringStream('__substg1.0_1000')
-
-    @property
-    def attachments(self):
-        """
-        Returns a list of all attachments.
-        """
-        try:
-            return self._attachments
-        except AttributeError:
-            # Get the attachments
-            attachmentDirs = []
-
-            for dir_ in self.listDir():
-                if dir_[len(self.__prefixList)].startswith('__attach') and\
-                        dir_[len(self.__prefixList)] not in attachmentDirs:
-                    attachmentDirs.append(dir_[len(self.__prefixList)])
-
-            self._attachments = []
-
-            for attachmentDir in attachmentDirs:
-                self._attachments.append(Attachment(self, attachmentDir))
-
-            return self._attachments
-
-    @property
-    def recipients(self):
-        """
-        Returns a list of all recipients.
-        """
-        try:
-            return self._recipients
-        except AttributeError:
-            # Get the recipients
-            recipientDirs = []
-
-            for dir_ in self.listDir():
-                if dir_[len(self.__prefixList)].startswith('__recip') and\
-                        dir_[len(self.__prefixList)] not in recipientDirs:
-                    recipientDirs.append(dir_[len(self.__prefixList)])
-
-            self._recipients = []
-
-            for recipientDir in recipientDirs:
-                self._recipients.append(Recipient(recipientDir, self))
-
-            return self._recipients
 
     def dump(self):
         """
