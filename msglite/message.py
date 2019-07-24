@@ -201,15 +201,6 @@ class Message(olefile.OleFileIO):
         return self._header
 
     @property
-    def header_dict(self):
-        """
-        Returns a dictionary of the entries in the header
-        """
-        header_dict = dict(self.header._header)
-        header_dict.pop('Received')
-        return header_dict
-
-    @property
     def parsedDate(self):
         return email.utils.parsedate(self.date)
 
