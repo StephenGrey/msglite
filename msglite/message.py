@@ -5,6 +5,7 @@ import json
 import logging
 import olefile
 import email.utils
+from email.policy import default
 from email.parser import Parser as EmailParser
 
 from msglite import constants
@@ -212,7 +213,8 @@ class Message(olefile.OleFileIO):
         """ Returns the message header. """
         headerText = self.getStringField('007D')
         headerText = headerText or ''
-        header = EmailParser().parsestr(headerText)
+        parser = EmailParser(policy=default)
+        header = parser.parsestr(headerText)
         return header
 
     @property
