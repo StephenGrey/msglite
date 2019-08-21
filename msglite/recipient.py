@@ -15,7 +15,8 @@ class Recipient(object):
     def __init__(self, _dir, msg):
         self.__msg = msg  # Allows calls to original msg file
         self.dir = _dir
-        self.props = Properties(self._getStream('__properties_version1.0'), constants.TYPE_RECIPIENT)
+        self.props = Properties(self._getStream('__properties_version1.0'),
+                                constants.TYPE_RECIPIENT)
         self.email = self._getStringStream('__substg1.0_39FE')
         if not self.email:
             self.email = self._getStringStream('__substg1.0_3003')

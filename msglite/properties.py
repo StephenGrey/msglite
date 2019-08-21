@@ -9,12 +9,10 @@ logger = logging.getLogger(__name__)
 
 
 class Properties(object):
-    """
-    Parser for msg properties files.
-    """
+    """Parser for msg properties files."""
 
     def __init__(self, stream, type=None, skip=None):
-        self.__stream = stream
+        self.stream = stream
         self.__pos = 0
         self.__len = len(stream)
         self.__props = {}
@@ -23,17 +21,17 @@ class Properties(object):
         self.__ac = None
         self.__rc = None
         if type is not None:
-            self.__intel = constants.INTELLIGENCE_SMART
+            self.intelligence = constants.INTELLIGENCE_SMART
             if type == constants.TYPE_MESSAGE:
                 skip = 32
-                self.__naid, self.__nrid, self.__ac, self.__rc = constants.ST1.unpack(self.__stream[:24])
+                self.__naid, self.__nrid, self.__ac, self.__rc = constants.ST1.unpack(self.stream[:24])
             elif type == constants.TYPE_MESSAGE_EMBED:
                 skip = 24
-                self.__naid, self.__nrid, self.__ac, self.__rc = constants.ST1.unpack(self.__stream[:24])
+                self.__naid, self.__nrid, self.__ac, self.__rc = constants.ST1.unpack(self.stream[:24])
             else:
                 skip = 8
         else:
-            self.__intel = constants.INTELLIGENCE_DUMB
+            self.intelligence = constants.INTELLIGENCE_DUMB
             if skip is None:
                 # This section of the skip handling is not very good.
                 # While it does work, it is likely to create extra
@@ -46,7 +44,7 @@ class Properties(object):
                 skip = self.__len % 16
                 if skip == 0:
                     skip = 32
-        streams = divide(self.__stream[skip:], 16)
+        streams = divide(self.stream[skip:], 16)
         for st in streams:
             a = create_prop(st)
             self.__props[a.name] = a
@@ -99,10 +97,6 @@ class Properties(object):
     def __repr__(self):
         return self.__props.__repr__
 
-    items.__doc__ = dict.items.__doc__
-    keys.__doc__ = dict.keys.__doc__
-    values.__doc__ = dict.values.__doc__
-
     @property
     def attachment_count(self):
         if self.__ac is None:
@@ -137,13 +131,6 @@ class Properties(object):
             return self.__date
 
     @property
-    def intelligence(self):
-        """
-        Returns the inteligence level of the Properties instance.
-        """
-        return self.__intel
-
-    @property
     def next_attachment_id(self):
         if self.__naid is None:
             raise TypeError(
@@ -169,10 +156,3 @@ class Properties(object):
         if self.__rc is None:
             raise TypeError('Properties instance must be intelligent and of type TYPE_MESSAGE to get recipient count.')
         return self.__rc
-
-    @property
-    def stream(self):
-        """
-        Returns the data stream used to generate this Properties instance.
-        """
-        return self.__stream

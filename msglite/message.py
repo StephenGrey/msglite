@@ -213,6 +213,13 @@ class Message(olefile.OleFileIO):
             recipients.append(Recipient(recipientDir, self))
         return recipients
 
+    def getRecipientsByType(self, type):
+        recipients = []
+        for x in self.recipients:
+            if x.type & 0x0000000f == type:
+                recipients.append(x.formatted)
+        return recipients
+
     def parseHeader(self):
         """ Returns the message header. """
         headerText = self.getStringField('007D')
@@ -249,16 +256,7 @@ class Message(olefile.OleFileIO):
         headerResult = self.getHeader('to')
         if headerResult is not None:
             return headerResult
-        f = []
-        for x in self.recipients:
-            if x.type & 0x0000000f == 1:
-                f.append(x.formatted)
-        if len(f) > 0:
-            st = f[0]
-            if len(f) > 1:
-                for x in range(1, len(f)):
-                    st += '; {0}'.format(f[x])
-            return st
+        return self.getRecipientsByType(1)
 
     @property
     def cc(self):
@@ -266,16 +264,15 @@ class Message(olefile.OleFileIO):
         headerResult = self.getHeader('cc')
         if headerResult is not None:
             return headerResult
-        f = []
-        for x in self.recipients:
-            if x.type & 0x0000000f == 2:
-                f.append(x.formatted)
-        if len(f) > 0:
-            st = f[0]
-            if len(f) > 1:
-                for x in range(1, len(f)):
-                    st += '; {0}'.format(f[x])
-            return st
+        return self.getRecipientsByType(2)
+
+    @property
+    def bcc(self):
+        """ Returns the bcc field. """
+        headerResult = self.getHeader('bcc')
+        if headerResult is not None:
+            return headerResult
+        return self.getRecipientsByType(3)
 
     @property
     def compressedRtf(self):
