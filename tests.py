@@ -25,8 +25,8 @@ class TestCase(unittest.TestCase):
             u'\r\n\r\n\r\n\r\n\r\nBrian Zhou\r\n\r\n')
         self.assertEqual(msg.date, 'Mon, 18 Nov 2013 08:26:24 +0000')
         self.assertEqual(msg.sender, 'Brian Zhou <brizhou@gmail.com>')
-        self.assertEqual(msg.to, 'brianzhou@me.com')
-        self.assertEqual(msg.cc, 'Brian Zhou <brizhou@gmail.com>')
+        self.assertEqual(msg.to, ['brianzhou@me.com'])
+        self.assertEqual(msg.cc, ['Brian Zhou <brizhou@gmail.com>'])
         self.assertEqual(len(msg.attachments), 2)
 
 

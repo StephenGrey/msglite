@@ -108,7 +108,8 @@ class Message(olefile.OleFileIO):
 
     def listDir(self, streams=True, storages=False):
         """
-        Replacement for OleFileIO.listdir that runs at the current prefix directory.
+        Replacement for OleFileIO.listdir that runs at the current
+        prefix directory.
         """
         temp = self.listdir(streams, storages)
         if self.prefix == '':
