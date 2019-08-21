@@ -4,7 +4,7 @@ import re
 
 setup(
     name='msglite',
-    version='0.24.4',
+    version='0.25.0',
     description="Extracts emails and attachments saved in Microsoft Outlook's .msg files",
     url='https://github.com/alephdata/msglite',
     author='Originally: Matthew Walker & The Elemental of Creation',
