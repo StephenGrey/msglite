@@ -1,7 +1,4 @@
-import os
-import re
 import copy
-import json
 import logging
 import olefile
 import email.utils
@@ -12,7 +9,7 @@ from msglite import constants
 from msglite.attachment import Attachment
 from msglite.properties import Properties
 from msglite.recipient import Recipient
-from msglite.utils import has_len, xstr, format_party, guess_encoding
+from msglite.utils import has_len, format_party, guess_encoding
 
 logger = logging.getLogger(__name__)
 
@@ -22,13 +19,15 @@ class Message(olefile.OleFileIO):
     Parser for Microsoft Outlook message files.
     """
 
-    def __init__(self, path, prefix='', filename=None, stringEncoding="utf-16-le"):
+    def __init__(self, path, prefix='', filename=None,
+                 stringEncoding="utf-16-le"):
         """
         :param path: path to the msg file in the system or is the raw msg file.
         :param prefix: used for extracting embeded msg files
             inside the main one. Do not set manually unless
             you know what you are doing.
-        :param filename: optional, the filename to be used by default when saving.
+        :param filename: optional, the filename to be used by default when
+            saving.
         """
         # WARNING DO NOT MANUALLY MODIFY PREFIX. Let the program set it.
         self.encoding = stringEncoding
@@ -40,9 +39,8 @@ class Message(olefile.OleFileIO):
             if not isinstance(prefix, str):
                 try:
                     prefix = '/'.join(prefix)
-                except:
-                    raise TypeError('Invalid prefix type: ' + str(type(prefix)) +
-                                    '\n(This was probably caused by you setting it manually).')
+                except Exception:
+                    raise TypeError('Invalid prefix: ' + str(type(prefix)))
             prefix = prefix.replace('\\', '/')
             g = prefix.split("/")
             if g[-1] == '':
@@ -53,7 +51,8 @@ class Message(olefile.OleFileIO):
         self.prefix = prefix
         self.__prefixList = prefixl
         if tmp_condition:
-            filename = self._getStringStream(prefixl[:-1] + ['__substg1.0_3001'], prefix=False)
+            addr = prefixl[:-1] + ['__substg1.0_3001']
+            filename = self._getStringStream(addr, prefix=False)
         if filename is not None:
             self.filename = filename
         elif has_len(path):
@@ -65,8 +64,11 @@ class Message(olefile.OleFileIO):
             self.filename = None
 
         # Parse the main props
-        prop_type = constants.TYPE_MESSAGE if self.prefix == '' else constants.TYPE_MESSAGE_EMBED
-        self.mainProperties = Properties(self._getStream('__properties_version1.0'), prop_type)
+        prop_type = constants.TYPE_MESSAGE_EMBED
+        if self.prefix == '':
+            prop_type = constants.TYPE_MESSAGE
+        propdata = self._getStream('__properties_version1.0')
+        self.mainProperties = Properties(propdata, prop_type)
 
         # Determine if the message is unicode-style:
         # PidTagStoreSupportMask
@@ -81,7 +83,8 @@ class Message(olefile.OleFileIO):
             if self.mainProperties.has_key('3FFD0003'):
                 enc = self.mainProperties['3FFD0003'].value
                 # Now we just need to translate that value
-                # Now, this next line SHOULD work, but it is possible that it might not...
+                # Now, this next line SHOULD work, but it is possible
+                # that it might not...
                 self.encoding = str(enc)
             else:
                 guessed = self.guessEncoding()
@@ -92,7 +95,7 @@ class Message(olefile.OleFileIO):
         self.attachments = self.parseAttachments()
         self.subject = self._getStringStream('__substg1.0_0037')
         self.date = self.mainProperties.date
-    
+
     def guessEncoding(self):
         texts = ('1000001E', '1000001F',
                  '1013001E', '1013001F',
@@ -217,6 +220,13 @@ class Message(olefile.OleFileIO):
         header = parser.parsestr(headerText)
         return header
 
+    def getHeader(self, name):
+        try:
+            return self.header.get_all(name)
+        except (TypeError, IndexError, AttributeError, ValueError) as exc:
+            logger.warning("Cannot read header [%s]: %s", name, exc)
+            return None
+
     @property
     def parsedDate(self):
         return email.utils.parsedate(self.date)
@@ -235,7 +245,7 @@ class Message(olefile.OleFileIO):
     @property
     def to(self):
         """ Returns the to field. """
-        headerResult = self.header['to']
+        headerResult = self.getHeader('to')
         if headerResult is not None:
             return headerResult
         f = []
@@ -252,9 +262,9 @@ class Message(olefile.OleFileIO):
     @property
     def cc(self):
         """ Returns the cc field. """
-        headerResult = self.header['cc']
+        headerResult = self.getHeader('cc')
         if headerResult is not None:
-            return headerResult   
+            return headerResult
         f = []
         for x in self.recipients:
             if x.type & 0x0000000f == 2:
@@ -287,14 +297,14 @@ class Message(olefile.OleFileIO):
 
     @property
     def message_id(self):
-        message_id = self.header['message-id']
+        message_id = self.getHeader('message-id')
         if message_id is not None:
             return message_id
         return self.getStringField('1035')
-    
+
     @property
     def references(self):
-        message_id = self.header['references']
+        message_id = self.getHeader('references')
         if message_id is not None:
             return message_id
         return self.getStringField('1039')
