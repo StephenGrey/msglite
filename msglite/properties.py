@@ -1,4 +1,3 @@
-import copy
 import logging
 
 from msglite import constants
@@ -13,15 +12,12 @@ class Properties(object):
 
     def __init__(self, stream, type=None, skip=None):
         self.stream = stream
-        self.__pos = 0
-        self.__len = len(stream)
-        self.__props = {}
+        self.props = {}
         self.__naid = None
         self.__nrid = None
         self.__ac = None
         self.__rc = None
         if type is not None:
-            self.intelligence = constants.INTELLIGENCE_SMART
             if type == constants.TYPE_MESSAGE:
                 skip = 32
                 self.__naid, self.__nrid, self.__ac, self.__rc = constants.ST1.unpack(self.stream[:24])
@@ -31,7 +27,6 @@ class Properties(object):
             else:
                 skip = 8
         else:
-            self.intelligence = constants.INTELLIGENCE_DUMB
             if skip is None:
                 # This section of the skip handling is not very good.
                 # While it does work, it is likely to create extra
@@ -41,61 +36,54 @@ class Properties(object):
                 # skip length calculation. Preferably, we want the type
                 # to have been specified so all of the additional fields
                 # will have been filled out
-                skip = self.__len % 16
+                skip = len(stream) % 16
                 if skip == 0:
                     skip = 32
         streams = divide(self.stream[skip:], 16)
         for st in streams:
             a = create_prop(st)
-            self.__props[a.name] = a
-        self.__pl = len(self.__props)
+            self.props[a.name] = a
 
     def get(self, name):
         """
         Retrieve the property of :param name:.
         """
         try:
-            return self.__props[name]
+            return self.props[name]
         except KeyError:
             # DEBUG
             logger.debug('KeyError exception.')
             logger.debug(properHex(self.__stream))
-            logger.debug(self.__props)
+            logger.debug(self.props)
             raise
 
     def has_key(self, key):
-        """
-        Checks if :param key: is a key in the properties dictionary.
-        """
-        return key in self.__props
+        return key in self.props
 
     def items(self):
-        return self.__props.items()
+        return self.props.items()
 
     def keys(self):
-        return self.__props.keys()
+        return self.props.keys()
 
     def values(self):
-        return self.__props.values()
+        return self.props.values()
 
     def __contains__(self, key):
-        self.__props.__contains__(key)
+        self.props.__contains__(key)
 
     def __getitem__(self, key):
-        return self.__props.__getitem__(key)
+        return self.props.__getitem__(key)
 
     def __iter__(self):
-        return self.__props.__iter__()
+        return self.props.__iter__()
 
     def __len__(self):
-        """
-        Returns the number of properties.
-        """
-        return self.__pl
+        return len(self.props)
 
     @property
     def __repr__(self):
-        return self.__props.__repr__
+        return self.props.__repr__
 
     @property
     def attachment_count(self):
@@ -143,13 +131,6 @@ class Properties(object):
             raise TypeError(
                 'Properties instance must be intelligent and of type TYPE_MESSAGE to get next recipient id.')
         return self.__nrid
-
-    @property
-    def props(self):
-        """
-        Returns a copy of the internal properties dict.
-        """
-        return copy.deepcopy(self.__props)
 
     @property
     def recipient_count(self):
