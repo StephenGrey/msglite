@@ -2,9 +2,9 @@ import logging
 
 from msglite import constants
 from msglite.prop import create_prop
-from msglite.utils import divide, fromTimeStamp, msgEpoch, properHex
+from msglite.utils import divide, fromTimeStamp, msgEpoch
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 class Properties(object):
@@ -51,14 +51,7 @@ class Properties(object):
         try:
             return self.props[name]
         except KeyError:
-            # DEBUG
-            logger.debug('KeyError exception.')
-            logger.debug(properHex(self.__stream))
-            logger.debug(self.props)
-            raise
-
-    def has_key(self, key):
-        return key in self.props
+            return None
 
     def items(self):
         return self.props.items()
@@ -99,23 +92,15 @@ class Properties(object):
         try:
             return self.__date
         except AttributeError:
-            if self.has_key('00390040'):
-                self.__date = fromTimeStamp(msgEpoch(self.get('00390040').value)).__format__(
-                    '%a, %d %b %Y %H:%M:%S %z')
-            elif self.has_key('30080040'):
-                self.__date = fromTimeStamp(msgEpoch(self.get('30080040').value)).__format__(
-                    '%a, %d %b %Y %H:%M:%S %z')
-            elif self.has_key('30070040'):
-                self.__date = fromTimeStamp(msgEpoch(self.get('30070040').value)).__format__(
-                    '%a, %d %b %Y %H:%M:%S %z')
+            if '00390040' in self:
+                self.__date = fromTimeStamp(msgEpoch(self.get('00390040').value)).__format__('%a, %d %b %Y %H:%M:%S %z')  # noqa
+            elif '30080040' in self:
+                self.__date = fromTimeStamp(msgEpoch(self.get('30080040').value)).__format__('%a, %d %b %Y %H:%M:%S %z')  # noqa
+            elif '30070040' in self:
+                self.__date = fromTimeStamp(msgEpoch(self.get('30070040').value)).__format__('%a, %d %b %Y %H:%M:%S %z')  # noqa
             else:
-                # DEBUG
-                logger.warning(
-                    'Error retrieving date. Setting as "Unknown". Please send the following data to developer:\n--------------------')
-                logger.warning(properHex(self.__stream))
-                logger.warning(self.keys())
-                logger.warning('--------------------')
-                self.__date = 'Unknown'
+                log.warning('Error retrieving date.')
+                self.__date = None
             return self.__date
 
     @property

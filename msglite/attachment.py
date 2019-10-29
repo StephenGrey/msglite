@@ -1,12 +1,9 @@
 import logging
-import random
-import string
 
 from msglite import constants
 from msglite.properties import Properties
-from msglite.utils import properHex
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 class Attachment(object):
@@ -20,12 +17,14 @@ class Attachment(object):
     def __init__(self, msg, dir_):
         """
         :param msg: the Message instance that the attachment belongs to.
-        :param dir_: the directory inside the msg file where the attachment is located.
+        :param dir_: the directory inside the msg file where the attachment is
+            located.
         """
         self.msg = msg
         self.dir = dir_
-        self.props = Properties(self._getStream('__properties_version1.0'),
-                                constants.TYPE_ATTACHMENT)
+        stream = self._getStream('__properties_version1.0')
+        self.props = Properties(stream, constants.TYPE_ATTACHMENT)
+
         # Get long filename
         self.longFilename = self._getStringStream('__substg1.0_3707')
 
@@ -71,14 +70,9 @@ class Attachment(object):
         """
         return self.msg.Exists([self.dir, filename])
 
-    def sExists(self, filename):
-        """
-        Checks if the string stream exists inside the attachment folder.
-        """
-        return self.msg.sExists([self.dir, filename])
-
     def getDefaultFilename(self):
-        # If filename is None at this point, use long filename as first preference  
+        # If filename is None at this point, use long filename as first
+        # preference:
         if self.longFilename:
             return self.longFilename
         # Otherwise use the short filename

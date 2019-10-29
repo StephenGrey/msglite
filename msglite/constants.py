@@ -43,9 +43,13 @@ TYPE_MESSAGE_EMBED = 1
 TYPE_ATTACHMENT = 2
 TYPE_RECIPIENT = 3
 
+# Sender if `type & 0xf == 0`
 RECIPIENT_SENDER = 0
+# To if `type & 0xf == 1`
 RECIPIENT_TO = 1
+# Cc if `type & 0xf == 2`
 RECIPIENT_CC = 2
+# Bcc if `type & 0xf == 3`
 RECIPIENT_BCC = 3
 
 # Define pre-compiled structs to make unpacking slightly faster
