@@ -1,13 +1,6 @@
-"""
-Utility functions of extract_msg.
-"""
-import os
-import sys
-import json
 import pytz
 import chardet
 import logging
-import argparse
 import datetime
 
 from msglite import constants
@@ -16,9 +9,6 @@ logger = logging.getLogger(__name__)
 
 
 def properHex(inp):
-    """
-    Taken (with permission) from https://github.com/TheElementalOfCreation/creatorUtils
-    """
     a = ''
     if isinstance(inp, str):
         a = ''.join([hex(ord(inp[x]))[2:].rjust(2, '0') for x in range(len(inp))])
@@ -29,10 +19,6 @@ def properHex(inp):
     if len(a) % 2 != 0:
         a = '0' + a
     return a
-
-
-def xstr(s):
-    return '' if s is None else str(s)
 
 
 def guess_encoding(raw):
@@ -47,35 +33,13 @@ def guess_encoding(raw):
 
 
 def divide(string, length):
-    """
-    Taken (with permission) from https://github.com/TheElementalOfCreation/creatorUtils
-
-    Divides a string into multiple substrings of equal length
-    :param string: string to be divided.
-    :param length: length of each division.
-    :returns: list containing the divided strings.
-
-    Example:
-    >>>> a = divide('Hello World!', 2)
-    >>>> print(a)
-    ['He', 'll', 'o ', 'Wo', 'rl', 'd!']
-    """
-    return [string[length * x:length * (x + 1)] for x in range(int(len(string) / length))]
+    """Divides a string into multiple substrings of equal length."""
+    slices = int(len(string) / length)
+    return [string[length * x:length * (x + 1)] for x in range(slices)]
 
 
 def fromTimeStamp(stamp):
     return datetime.datetime.fromtimestamp(stamp, pytz.UTC)
-
-
-def has_len(obj):
-    """
-    Checks if :param obj: has a __len__ attribute.
-    """
-    try:
-        obj.__len__
-        return True
-    except AttributeError:
-        return False
 
 
 def format_party(email, label):
@@ -103,11 +67,9 @@ def parse_type(_type, stream):
     :param _type:, if possible.
     :param stream # TODO what is stream?
 
-    Some types require that :param prop_value: be specified. This can be retrieved from the Properties instance.
-
-    WARNING: Not done. Do not try to implement anywhere where it is not already implemented
+    Some types require that :param prop_value: be specified.
+    This can be retrieved from the Properties instance.
     """
-    # WARNING Not done. Do not try to implement anywhere where it is not already implemented
     value = stream
     if _type == 0x0000:  # PtypUnspecified
         pass

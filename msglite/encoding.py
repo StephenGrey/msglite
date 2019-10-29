@@ -1,6 +1,7 @@
 
 # Source:
 # https://docs.microsoft.com/en-us/windows/win32/intl/code-page-identifiers
+DEFAULT_ENCODING = 'utf-16-le'
 
 ENCODINGS = {
     37: 'IBM037',

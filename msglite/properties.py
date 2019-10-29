@@ -63,7 +63,7 @@ class Properties(object):
         return self.props.values()
 
     def __contains__(self, key):
-        self.props.__contains__(key)
+        return self.props.__contains__(key)
 
     def __getitem__(self, key):
         return self.props.__getitem__(key)
