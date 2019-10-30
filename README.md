@@ -1,5 +1,7 @@
 # msglite
 
+[![Actions Status](https://github.com/alephdata/msglite/workflows/package/badge.svg)](https://github.com/alephdata/msglite/actions)
+
 Extracts emails and attachments saved in Microsoft Outlook's .msg files
 
 The python package extract_msg automates the extraction of key email
