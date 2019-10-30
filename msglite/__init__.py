@@ -1,13 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: latin-1 -*-
-# Date Format: YYYY-MM-DD
-
-"""
-extract_msg:
-    Extracts emails and attachments saved in Microsoft Outlook's .msg files.
-
-https://github.com/mattgwwalker/msg-extractor
-"""
 
 # --- LICENSE.txt -----------------------------------------------------------------
 #

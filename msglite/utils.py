@@ -5,13 +5,14 @@ import datetime
 
 from msglite import constants
 
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 def properHex(inp):
     a = ''
     if isinstance(inp, str):
-        a = ''.join([hex(ord(inp[x]))[2:].rjust(2, '0') for x in range(len(inp))])
+        initer = range(len(inp))
+        a = ''.join([hex(ord(inp[x]))[2:].rjust(2, '0') for x in initer])
     elif isinstance(inp, bytes):
         a = inp.hex()
     elif isinstance(inp, int):
@@ -54,9 +55,6 @@ def format_party(email, label):
 
 
 def msgEpoch(inp):
-    """
-    Taken (with permission) from https://github.com/TheElementalOfCreation/creatorUtils
-    """
     return (inp - 116444736000000000) / 10000000.0
 
 
@@ -75,8 +73,7 @@ def parse_type(_type, stream):
         pass
     elif _type == 0x0001:  # PtypNull
         if value != b'\x00\x00\x00\x00\x00\x00\x00\x00':
-            # DEBUG
-            logger.warning('Property type is PtypNull, but is not equal to 0.')
+            log.debug('Property type is PtypNull, but is not equal to 0.')
         value = None
     elif _type == 0x0002:  # PtypInteger16
         value = constants.STI16.unpack(value)[0]
