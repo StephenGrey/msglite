@@ -49,18 +49,6 @@ class Message(olefile.OleFileIO):
                 prefix += '/'
         self.prefix = prefix
         self.__prefixList = prefixl
-        if tmp_condition:
-            addr = prefixl[:-1] + ['__substg1.0_3001']
-            filename = self._getStringStream(addr, prefix=False)
-        if filename is not None:
-            self.filename = filename
-        elif path is not None:
-            if len(path) < 1536:
-                self.filename = path
-            else:
-                self.filename = None
-        else:
-            self.filename = None
 
         # Parse the main props
         prop_type = constants.TYPE_MESSAGE_EMBED
@@ -85,6 +73,20 @@ class Message(olefile.OleFileIO):
             # PidTagMessageCodepage
             codepage = self.mainProperties['3FFD0003'].value
             self.encoding = ENCODINGS.get(codepage, self.encoding)
+
+        # Determine file name (is this needed?)
+        if tmp_condition:
+            addr = prefixl[:-1] + ['__substg1.0_3001']
+            filename = self._getStringStream(addr, prefix=False)
+        if filename is not None:
+            self.filename = filename
+        elif path is not None:
+            if len(path) < 1536:
+                self.filename = path
+            else:
+                self.filename = None
+        else:
+            self.filename = None
 
         log.debug('Message encoding: %s', self.encoding)
         self.header = self.parseHeader()
