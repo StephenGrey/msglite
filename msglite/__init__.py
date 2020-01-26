@@ -19,7 +19,7 @@
 
 __author__ = 'Matthew Walker & The Elemental of Creation'
 __date__ = '2019-04-20'
-__version__ = '0.26.1'
+__version__ = '0.27.0'
 
 from msglite import constants
 from msglite.attachment import Attachment
