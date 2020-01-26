@@ -1,6 +1,6 @@
 import copy
 import logging
-import olefile
+from olefile import OleFileIO
 import email.utils
 from email.policy import default
 from email.parser import Parser as EmailParser
@@ -9,13 +9,13 @@ from msglite import constants
 from msglite.attachment import Attachment
 from msglite.properties import Properties
 from msglite.recipient import Recipient
-from msglite.encoding import DEFAULT_ENCODING, ENCODINGS
+from msglite.encoding import DEFAULT_ENCODING, get_encoding
 from msglite.utils import format_party, guess_encoding
 
 log = logging.getLogger(__name__)
 
 
-class Message(olefile.OleFileIO):
+class Message(OleFileIO):
     """
     Parser for Microsoft Outlook message files.
     """
@@ -29,9 +29,8 @@ class Message(olefile.OleFileIO):
         :param filename: optional, the filename to be used by default when
             saving.
         """
-        # WARNING DO NOT MANUALLY MODIFY PREFIX. Let the program set it.
         self.path = path
-        olefile.OleFileIO.__init__(self, path)
+        OleFileIO.__init__(self, path)
         prefixl = []
         tmp_condition = prefix != ''
         if tmp_condition:
@@ -68,11 +67,11 @@ class Message(olefile.OleFileIO):
         if '66C30003' in self.mainProperties:
             # PidTagCodePageId
             codepage = self.mainProperties['66C30003'].value
-            self.encoding = ENCODINGS.get(codepage, self.encoding)
+            self.encoding = get_encoding(codepage, self.encoding)
         if '3FFD0003' in self.mainProperties:
             # PidTagMessageCodepage
             codepage = self.mainProperties['3FFD0003'].value
-            self.encoding = ENCODINGS.get(codepage, self.encoding)
+            self.encoding = get_encoding(codepage, self.encoding)
 
         # Determine file name (is this needed?)
         if tmp_condition:

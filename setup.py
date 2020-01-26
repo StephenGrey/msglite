@@ -17,6 +17,7 @@ setup(
     include_package_data=True,
     install_requires=[
         'olefile>=0.46',
+        'ebcdic>=1.1.1',
         'chardet',
         'pytz',
     ],
