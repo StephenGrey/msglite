@@ -20,10 +20,14 @@ class Properties(object):
         if type is not None:
             if type == constants.TYPE_MESSAGE:
                 skip = 32
-                self.__naid, self.__nrid, self.__ac, self.__rc = constants.ST1.unpack(self.stream[:24])
+                self.__naid, self.__nrid, self.__ac, self.__rc = constants.ST1.unpack(
+                    self.stream[:24]
+                )
             elif type == constants.TYPE_MESSAGE_EMBED:
                 skip = 24
-                self.__naid, self.__nrid, self.__ac, self.__rc = constants.ST1.unpack(self.stream[:24])
+                self.__naid, self.__nrid, self.__ac, self.__rc = constants.ST1.unpack(
+                    self.stream[:24]
+                )
             else:
                 skip = 8
         else:
@@ -81,7 +85,9 @@ class Properties(object):
     @property
     def attachment_count(self):
         if self.__ac is None:
-            raise TypeError('Properties instance must be intelligent and of type TYPE_MESSAGE to get attachment count.')
+            raise TypeError(
+                "Properties instance must be intelligent and of type TYPE_MESSAGE to get attachment count."
+            )
         return self.__ac
 
     @property
@@ -92,14 +98,26 @@ class Properties(object):
         try:
             return self.__date
         except AttributeError:
-            if '00390040' in self:
-                self.__date = fromTimeStamp(msgEpoch(self.get('00390040').value)).__format__('%a, %d %b %Y %H:%M:%S %z')  # noqa
-            elif '30080040' in self:
-                self.__date = fromTimeStamp(msgEpoch(self.get('30080040').value)).__format__('%a, %d %b %Y %H:%M:%S %z')  # noqa
-            elif '30070040' in self:
-                self.__date = fromTimeStamp(msgEpoch(self.get('30070040').value)).__format__('%a, %d %b %Y %H:%M:%S %z')  # noqa
+            if "00390040" in self:
+                self.__date = fromTimeStamp(
+                    msgEpoch(self.get("00390040").value)
+                ).__format__(
+                    "%a, %d %b %Y %H:%M:%S %z"
+                )  # noqa
+            elif "30080040" in self:
+                self.__date = fromTimeStamp(
+                    msgEpoch(self.get("30080040").value)
+                ).__format__(
+                    "%a, %d %b %Y %H:%M:%S %z"
+                )  # noqa
+            elif "30070040" in self:
+                self.__date = fromTimeStamp(
+                    msgEpoch(self.get("30070040").value)
+                ).__format__(
+                    "%a, %d %b %Y %H:%M:%S %z"
+                )  # noqa
             else:
-                log.warning('Error retrieving date.')
+                log.warning("Error retrieving date.")
                 self.__date = None
             return self.__date
 
@@ -107,18 +125,22 @@ class Properties(object):
     def next_attachment_id(self):
         if self.__naid is None:
             raise TypeError(
-                'Properties instance must be intelligent and of type TYPE_MESSAGE to get next attachment id.')
+                "Properties instance must be intelligent and of type TYPE_MESSAGE to get next attachment id."
+            )
         return self.__naid
 
     @property
     def next_recipient_id(self):
         if self.__nrid is None:
             raise TypeError(
-                'Properties instance must be intelligent and of type TYPE_MESSAGE to get next recipient id.')
+                "Properties instance must be intelligent and of type TYPE_MESSAGE to get next recipient id."
+            )
         return self.__nrid
 
     @property
     def recipient_count(self):
         if self.__rc is None:
-            raise TypeError('Properties instance must be intelligent and of type TYPE_MESSAGE to get recipient count.')
+            raise TypeError(
+                "Properties instance must be intelligent and of type TYPE_MESSAGE to get recipient count."
+            )
         return self.__rc

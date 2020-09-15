@@ -22,34 +22,34 @@ class Attachment(object):
         """
         self.msg = msg
         self.dir = dir_
-        stream = self._getStream('__properties_version1.0')
+        stream = self._getStream("__properties_version1.0")
         self.props = Properties(stream, constants.TYPE_ATTACHMENT)
 
         # Get long filename
-        self.longFilename = self._getStringStream('__substg1.0_3707')
+        self.longFilename = self._getStringStream("__substg1.0_3707")
 
         # Get short filename
-        self.shortFilename = self._getStringStream('__substg1.0_3704')
+        self.shortFilename = self._getStringStream("__substg1.0_3704")
 
         # Get Content-ID
-        self.cid = self._getStringStream('__substg1.0_3712')
+        self.cid = self._getStringStream("__substg1.0_3712")
 
         # Get attachment data
         self.data = None
-        if self.Exists('__substg1.0_37010102'):
-            self.type = 'data'
-            self.data = self._getStream('__substg1.0_37010102')
-        elif self.Exists('__substg1.0_3701000D'):
-            if (self.props['37050003'].value & 0x7) != 0x5:
-                raise TypeError('Container is not an embedded msg file.')
-            self.prefix = msg.prefixList + [dir_, '__substg1.0_3701000D']
-            self.type = 'msg'
-            self.data = msg.__class__(self.msg.path,
-                                      prefix=self.prefix,
-                                      filename=self.getDefaultFilename())
+        if self.Exists("__substg1.0_37010102"):
+            self.type = "data"
+            self.data = self._getStream("__substg1.0_37010102")
+        elif self.Exists("__substg1.0_3701000D"):
+            if (self.props["37050003"].value & 0x7) != 0x5:
+                raise TypeError("Container is not an embedded msg file.")
+            self.prefix = msg.prefixList + [dir_, "__substg1.0_3701000D"]
+            self.type = "msg"
+            self.data = msg.__class__(
+                self.msg.path, prefix=self.prefix, filename=self.getDefaultFilename()
+            )
         else:
             # TODO Handling for special attachment types (like 0x00000007)
-            raise TypeError('Unknown attachment type.')
+            raise TypeError("Unknown attachment type.")
 
     def _getStream(self, filename):
         return self.msg._getStream([self.dir, filename])
@@ -79,7 +79,7 @@ class Attachment(object):
         if self.shortFilename:
             return self.shortFilename
         # Otherwise just make something up!
-        return 'Unknown %s.bin' % self.dir
+        return "Unknown %s.bin" % self.dir
 
     def __repr__(self):
-        return '<Attachment(%s)>' % self.getDefaultFilename()
+        return "<Attachment(%s)>" % self.getDefaultFilename()

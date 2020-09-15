@@ -9,16 +9,16 @@ log = logging.getLogger(__name__)
 
 
 def properHex(inp):
-    a = ''
+    a = ""
     if isinstance(inp, str):
         initer = range(len(inp))
-        a = ''.join([hex(ord(inp[x]))[2:].rjust(2, '0') for x in initer])
+        a = "".join([hex(ord(inp[x]))[2:].rjust(2, "0") for x in initer])
     elif isinstance(inp, bytes):
         a = inp.hex()
     elif isinstance(inp, int):
         a = hex(inp)[2:]
     if len(a) % 2 != 0:
-        a = '0' + a
+        a = "0" + a
     return a
 
 
@@ -26,17 +26,17 @@ def guess_encoding(raw):
     if raw is None:
         return
     result = chardet.detect(raw)
-    if result.get('confidence') > 0.5:
-        encoding = result.get('encoding')
-        if encoding == 'ascii':
-            return 'utf-8'
+    if result.get("confidence") > 0.5:
+        encoding = result.get("encoding")
+        if encoding == "ascii":
+            return "utf-8"
         return encoding
 
 
 def divide(string, length):
     """Divides a string into multiple substrings of equal length."""
     slices = int(len(string) / length)
-    return [string[length * x:length * (x + 1)] for x in range(slices)]
+    return [string[length * x : length * (x + 1)] for x in range(slices)]
 
 
 def fromTimeStamp(stamp):
@@ -50,7 +50,7 @@ def format_party(email, label):
     else:
         result = label
         if email is not None:
-            result += ' <' + email + '>'
+            result += " <" + email + ">"
     return result
 
 
@@ -72,8 +72,8 @@ def parse_type(_type, stream):
     if _type == 0x0000:  # PtypUnspecified
         pass
     elif _type == 0x0001:  # PtypNull
-        if value != b'\x00\x00\x00\x00\x00\x00\x00\x00':
-            log.debug('Property type is PtypNull, but is not equal to 0.')
+        if value != b"\x00\x00\x00\x00\x00\x00\x00\x00":
+            log.debug("Property type is PtypNull, but is not equal to 0.")
         value = None
     elif _type == 0x0002:  # PtypInteger16
         value = constants.STI16.unpack(value)[0]
@@ -104,7 +104,7 @@ def parse_type(_type, stream):
         # TODO parsing for this
         pass
     elif _type == 0x001F:  # PtypString
-        value = value.decode('utf_16_le')
+        value = value.decode("utf_16_le")
     elif _type == 0x0040:  # PtypTime
         value = constants.ST3.unpack(value)[0]
     elif _type == 0x0048:  # PtypGuid

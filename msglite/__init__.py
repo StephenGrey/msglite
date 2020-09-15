@@ -17,9 +17,9 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-__author__ = 'Matthew Walker & The Elemental of Creation'
-__date__ = '2019-04-20'
-__version__ = '0.27.0'
+__author__ = "Matthew Walker & The Elemental of Creation"
+__date__ = "2019-04-20"
+__version__ = "0.27.0"
 
 from msglite import constants
 from msglite.attachment import Attachment

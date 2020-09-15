@@ -12,7 +12,7 @@ def create_prop(string):
         return FixedLengthProp(string)
     if temp in constants.VARIABLE_LENGTH_PROPS:
         return VariableLengthProp(string)
-    logger.warning('Unknown property type: {}'.format(properHex(temp)))
+    logger.warning("Unknown property type: {}".format(properHex(temp)))
 
 
 class PropBase(object):
@@ -39,7 +39,9 @@ class FixedLengthProp(PropBase):
 
     def __init__(self, string):
         super(FixedLengthProp, self).__init__(string)
-        self.value = self.parse_type(self.type, constants.STFIX.unpack(string)[0])  # noqa
+        self.value = self.parse_type(
+            self.type, constants.STFIX.unpack(string)[0]
+        )  # noqa
 
     def parse_type(self, _type, stream):
         """
@@ -55,9 +57,11 @@ class FixedLengthProp(PropBase):
         if _type == 0x0000:  # PtypUnspecified
             pass
         elif _type == 0x0001:  # PtypNull
-            if value != b'\x00\x00\x00\x00\x00\x00\x00\x00':
+            if value != b"\x00\x00\x00\x00\x00\x00\x00\x00":
                 # DEBUG
-                logger.warning('Property type is PtypNull, but is not equal to 0.')  # noqa
+                logger.warning(
+                    "Property type is PtypNull, but is not equal to 0."
+                )  # noqa
             value = None
         elif _type == 0x0002:  # PtypInteger16
             value = constants.STI16.unpack(value)[0]
@@ -89,7 +93,7 @@ class FixedLengthProp(PropBase):
         return value
 
     def __repr__(self):
-        return '<FLProp(%r)>' % self.value
+        return "<FLProp(%r)>" % self.value
 
 
 class VariableLengthProp(PropBase):
@@ -110,4 +114,4 @@ class VariableLengthProp(PropBase):
             self.real_length = self.length
 
     def __repr__(self):
-        return '<VLProp(%r)>' % self.real_length
+        return "<VLProp(%r)>" % self.real_length
