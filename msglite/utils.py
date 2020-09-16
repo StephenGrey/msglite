@@ -33,6 +33,13 @@ def guess_encoding(raw):
         return encoding
 
 
+def join_path(*parts):
+    parts = [p for p in parts if p not in ("", None)]
+    path = "/".join(parts)
+    path = path.replace("\\", "/")
+    return path.strip("/")
+
+
 def divide(string, length):
     """Divides a string into multiple substrings of equal length."""
     slices = int(len(string) / length)
