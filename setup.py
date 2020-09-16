@@ -5,7 +5,7 @@ with open("README.md") as f:
 
 setup(
     name="msglite",
-    version="0.27.0",
+    version="version='0.28.0'",
     description="Extracts emails and attachments saved in Microsoft Outlook's .msg files",  # noqa
     url="https://github.com/alephdata/msglite",
     author="OCCRP",
