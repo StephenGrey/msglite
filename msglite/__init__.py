@@ -18,7 +18,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 __author__ = "Matthew Walker & The Elemental of Creation"
-__version__ = "0.28.0"
+__version__ = "0.29.0"
 
 from msglite import constants
 from msglite.attachment import Attachment
