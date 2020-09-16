@@ -14,12 +14,10 @@ from msglite.utils import format_party, guess_encoding, join_path
 log = logging.getLogger(__name__)
 
 
-class Message(OleFileIO):
-    """
-    Parser for Microsoft Outlook message files.
-    """
+class Message(object):
+    """Parser for Microsoft Outlook message files."""
 
-    def __init__(self, path, prefix="", filename=None):
+    def __init__(self, path, prefix="", ole=None, filename=None):
         """
         :param path: path to the msg file in the system or is the raw msg file.
         :param prefix: used for extracting embeded msg files
@@ -30,8 +28,9 @@ class Message(OleFileIO):
         """
         self.path = path
         self.filename = filename
-        # TODO: make self.ole ?
-        OleFileIO.__init__(self, path)
+        if ole is None:
+            ole = OleFileIO(path)
+        self.ole = ole
 
         # Parse the main props
         self.prefix = prefix
@@ -77,43 +76,9 @@ class Message(OleFileIO):
             return encoding
         return DEFAULT_ENCODING
 
-    def list_paths(self, streams=True, storages=False):
-        """
-        Replacement for OleFileIO.listdir that runs at the current
-        prefix directory.
-        """
-        for path in self.listdir(streams, storages):
-            path = "/".join(path)
-            if not path.startswith(self.prefix):
-                continue
-
-            path = path[len(self.prefix) :]
-            path = path.strip("/")
-            yield path.split("/")[0]
-        # temp = self.listdir(streams, storages)
-        # if self.prefix == "":
-        #     return temp
-        # prefix = self.prefix.split("/")
-        # if prefix[-1] == "":
-        #     prefix.pop()
-        # out = []
-        # for x in temp:
-        #     good = True
-        #     if len(x) <= len(prefix):
-        #         good = False
-        #     if good:
-        #         for y in range(len(prefix)):
-        #             if x[y] != prefix[y]:
-        #                 good = False
-        #     if good:
-        #         out.append(x)
-        # return out
-
-    def Exists(self, inp):
-        """
-        Checks if :param inp: exists in the msg file.
-        """
-        return self.exists(self.fix_path(inp))
+    def exists(self, inp):
+        """Checks if :param inp: exists in the msg file."""
+        return self.ole.exists(join_path(self.prefix, inp))
 
     def fix_path(self, inp, prefix=True):
         """
@@ -125,18 +90,18 @@ class Message(OleFileIO):
             inp = join_path(self.prefix, inp)
         return inp
 
-    def _getStream(self, filename, prefix=True):
-        filename = self.fix_path(filename, prefix=prefix)
-        if not self.exists(filename):
+    def _getStream(self, filename):
+        filename = join_path(self.prefix, filename)
+        try:
+            with self.ole.openstream(filename) as stream:
+                return stream.read()
+        except OSError:
             return None
-        with self.openstream(filename) as stream:
-            return stream.read()
 
-    def _getStringStream(self, filename, prefix=True):
+    def _getStringStream(self, filename):
         """Gets a unicode representation of the requested filename."""
-        filename = self.fix_path(filename, prefix=prefix)
         for type_ in ("001F", "001E", "0102"):
-            data = self._getStream(filename + type_, prefix=prefix)
+            data = self._getStream(filename + type_)
             if data is None:
                 continue
             encoding = DEFAULT_ENCODING if type_ == "001F" else self.encoding
@@ -146,28 +111,38 @@ class Message(OleFileIO):
     def getStringField(self, name):
         return self._getStringStream("__substg1.0_%s" % name)
 
+    def list_paths(self):
+        """
+        Replacement for OleFileIO.listdir that runs at the current
+        prefix directory.
+        """
+        seen = set()
+        for path in self.ole.listdir():
+            path = "/".join(path)
+            if not path.startswith(self.prefix):
+                continue
+
+            path = path[len(self.prefix) :]
+            path = path.strip("/")
+            path = path.split("/")[0]
+            if path not in seen:
+                seen.add(path)
+                yield path
+
     def parseAttachments(self):
         """ Returns a list of all attachments. """
-        attachmentDirs = []
-        for path in self.list_paths():
-            if path.startswith("__attach") and path not in attachmentDirs:
-                attachmentDirs.append(path)
-
         attachments = []
-        for attachmentDir in attachmentDirs:
-            attachments.append(Attachment(self, attachmentDir))
+        for path in self.list_paths():
+            if path.startswith("__attach"):
+                attachments.append(Attachment(self, path))
         return attachments
 
     def parseRecipients(self):
         """ Returns a list of all recipients. """
-        recipientDirs = []
-        for path in self.list_paths():
-            if path.startswith("__recip") and path not in recipientDirs:
-                recipientDirs.append(path)
-
         recipients = []
-        for recipientDir in recipientDirs:
-            recipients.append(Recipient(recipientDir, self))
+        for path in self.list_paths():
+            if path.startswith("__recip"):
+                recipients.append(Recipient(self, path))
         return recipients
 
     def getRecipientsByType(self, type):

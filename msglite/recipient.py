@@ -10,7 +10,7 @@ log = logging.getLogger(__name__)
 class Recipient(object):
     """Contains one of the recipients in an msg file."""
 
-    def __init__(self, dir_, msg):
+    def __init__(self, msg, dir_):
         self.dir = dir_
         stream = msg._getStream(join_path(dir_, "__properties_version1.0"))
         self.props = Properties(stream, constants.TYPE_RECIPIENT)

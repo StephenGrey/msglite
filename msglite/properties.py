@@ -67,20 +67,19 @@ class Properties(object):
         return self.props.values()
 
     def __contains__(self, key):
-        return self.props.__contains__(key)
+        return key in self.props
 
     def __getitem__(self, key):
         return self.props.__getitem__(key)
 
     def __iter__(self):
-        return self.props.__iter__()
+        return iter(self.props)
 
     def __len__(self):
         return len(self.props)
 
-    @property
     def __repr__(self):
-        return self.props.__repr__
+        return repr(self.props)
 
     @property
     def attachment_count(self):
@@ -101,21 +100,15 @@ class Properties(object):
             if "00390040" in self:
                 self.__date = fromTimeStamp(
                     msgEpoch(self.get("00390040").value)
-                ).__format__(
-                    "%a, %d %b %Y %H:%M:%S %z"
-                )  # noqa
+                ).__format__("%a, %d %b %Y %H:%M:%S %z")
             elif "30080040" in self:
                 self.__date = fromTimeStamp(
                     msgEpoch(self.get("30080040").value)
-                ).__format__(
-                    "%a, %d %b %Y %H:%M:%S %z"
-                )  # noqa
+                ).__format__("%a, %d %b %Y %H:%M:%S %z")
             elif "30070040" in self:
                 self.__date = fromTimeStamp(
                     msgEpoch(self.get("30070040").value)
-                ).__format__(
-                    "%a, %d %b %Y %H:%M:%S %z"
-                )  # noqa
+                ).__format__("%a, %d %b %Y %H:%M:%S %z")
             else:
                 log.warning("Error retrieving date.")
                 self.__date = None

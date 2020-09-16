@@ -37,16 +37,19 @@ class Attachment(object):
 
         # Get attachment data
         self.data = None
-        if self.Exists("__substg1.0_37010102"):
+        if self.exists("__substg1.0_37010102"):
             self.type = "data"
             self.data = self._getStream("__substg1.0_37010102")
-        elif self.Exists("__substg1.0_3701000D"):
+        elif self.exists("__substg1.0_3701000D"):
             if (self.props["37050003"].value & 0x7) != 0x5:
                 raise TypeError("Container is not an embedded msg file.")
             prefix = join_path(msg.prefix, dir_, "__substg1.0_3701000D")
             self.type = "msg"
             self.data = msg.__class__(
-                self.msg.path, prefix=prefix, filename=self.getDefaultFilename()
+                self.msg.path,
+                prefix=prefix,
+                ole=msg.ole,
+                filename=self.getDefaultFilename(),
             )
         else:
             # TODO Handling for special attachment types (like 0x00000007)
@@ -65,11 +68,11 @@ class Attachment(object):
         """
         return self.msg._getStringStream(join_path(self.dir, filename))
 
-    def Exists(self, filename):
+    def exists(self, filename):
         """
         Checks if stream exists inside the attachment folder.
         """
-        return self.msg.Exists(join_path(self.dir, filename))
+        return self.msg.exists(join_path(self.dir, filename))
 
     def getDefaultFilename(self):
         # If filename is None at this point, use long filename as first
