@@ -140,19 +140,19 @@ class Message(object):
         attachments = []
         for path in self.list_paths():
             if path.startswith("__attach"):
-            try:
-                attachments.append(Attachment(self, path))
-            except TypeError as e:
-                log.warning('Could not parse attachment in message %s',self.path)
-                self.error_message='Skipped attachment on type error'
-                if not self.lazy:
-                    raise e
-            except Exception as e:
-                log.warning ('Could not parse an attachment in message %s',self.path)
-                log.debug(e)
-                self.error_message='Skipped attachment on unknown error'
-                if not self.lazy:
-                    raise e
+                try:
+                    attachments.append(Attachment(self, path))
+                except TypeError as e:
+                    log.warning('Could not parse attachment in message %s',self.path)
+                    self.error_message='Skipped attachment on type error'
+                    if not self.lazy:
+                        raise e
+                except Exception as e:
+                    log.warning ('Could not parse an attachment in message %s',self.path)
+                    log.debug(e)
+                    self.error_message='Skipped attachment on unknown error'
+                    if not self.lazy:
+                        raise e
         return attachments
 
     def parseRecipients(self):
