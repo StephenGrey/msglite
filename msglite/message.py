@@ -17,7 +17,7 @@ log = logging.getLogger(__name__)
 class Message(object):
     """Parser for Microsoft Outlook message files."""
 
-    def __init__(self, path, prefix="", ole=None, filename=None):
+    def __init__(self, path, prefix="", ole=None, filename=None,extract_attachments=True,lazy=False):
         """
         :param path: path to the msg file in the system or is the raw msg file.
         :param prefix: used for extracting embeded msg files
@@ -31,6 +31,9 @@ class Message(object):
         if ole is None:
             ole = OleFileIO(path)
         self.ole = ole
+        self.extract_attachments=extract_attachments
+        self.lazy=lazy
+        self.error_message=None
 
         # Parse the main props
         self.prefix = prefix
@@ -60,7 +63,8 @@ class Message(object):
         log.debug("Message encoding: %s", self.encoding)
         self.header = self.parseHeader()
         self.recipients = self.parseRecipients()
-        self.attachments = self.parseAttachments()
+        if self.extract_attachments:
+            self.attachments = self.parseAttachments()
         self.subject = self._getStringStream("__substg1.0_0037")
         self.date = self.mainProperties.date
 
@@ -132,9 +136,21 @@ class Message(object):
     def parseAttachments(self):
         """ Returns a list of all attachments. """
         attachments = []
-        for path in self.list_paths():
-            if path.startswith("__attach"):
-                attachments.append(Attachment(self, path))
+    for path in self.list_paths():
+        if path.startswith("__attach"):
+        try:
+            attachments.append(Attachment(self, path))
+        except TypeError as e:
+            log.warning('Could not parse attachment in message %s',self.path)
+            self.error_message='Skipped attachment on type error'
+            if not self.lazy:
+                raise e
+        except Exception as e:
+            log.warning ('Could not parse an attachment in message %s',self.path)
+            log.debug(e)
+            self.error_message='Skipped attachment on unknown error'
+            if not self.lazy:
+                raise e
         return attachments
 
     def parseRecipients(self):
