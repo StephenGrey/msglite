@@ -25,6 +25,8 @@ class Message(object):
             you know what you are doing.
         :param filename: optional, the filename to be used by default when
             saving.
+        :param: extract_attachments: extract data from attachments to message
+        :param lazy: continue with extraction even if an attachment fails
         """
         self.path = path
         self.filename = filename
@@ -136,21 +138,21 @@ class Message(object):
     def parseAttachments(self):
         """ Returns a list of all attachments. """
         attachments = []
-    for path in self.list_paths():
-        if path.startswith("__attach"):
-        try:
-            attachments.append(Attachment(self, path))
-        except TypeError as e:
-            log.warning('Could not parse attachment in message %s',self.path)
-            self.error_message='Skipped attachment on type error'
-            if not self.lazy:
-                raise e
-        except Exception as e:
-            log.warning ('Could not parse an attachment in message %s',self.path)
-            log.debug(e)
-            self.error_message='Skipped attachment on unknown error'
-            if not self.lazy:
-                raise e
+        for path in self.list_paths():
+            if path.startswith("__attach"):
+            try:
+                attachments.append(Attachment(self, path))
+            except TypeError as e:
+                log.warning('Could not parse attachment in message %s',self.path)
+                self.error_message='Skipped attachment on type error'
+                if not self.lazy:
+                    raise e
+            except Exception as e:
+                log.warning ('Could not parse an attachment in message %s',self.path)
+                log.debug(e)
+                self.error_message='Skipped attachment on unknown error'
+                if not self.lazy:
+                    raise e
         return attachments
 
     def parseRecipients(self):
